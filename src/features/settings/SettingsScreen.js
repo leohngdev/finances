@@ -1,0 +1,275 @@
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { addLocalDays, formatISODate, lineAmount, parseISODate, parseLoading, parseRate } from "../../services/domain";
+import { useStore } from "../../services/StoreContext";
+import { canUseFileBackup, downloadBackup, pickBackupFile } from "../../shared/backup";
+import { confirmAction } from "../../shared/confirm";
+import { formatDay, formatMoney } from "../../shared/format";
+import { colors, fonts } from "../../shared/theme";
+import { Button } from "../../shared/ui/Button";
+import { Field } from "../../shared/ui/Field";
+import { Rule } from "../../shared/ui/Rule";
+import { Screen } from "../../shared/ui/Screen";
+
+function DateStepper({ valueISO, onChangeISO }) {
+  const date = parseISODate(valueISO || "2026-06-29");
+  return (
+    <View style={styles.anchorRow}>
+      <Pressable
+        onPress={() => onChangeISO(formatISODate(addLocalDays(date, -1)))}
+        style={styles.anchorBtn}
+      >
+        <Text style={styles.anchorBtnText}>‹</Text>
+      </Pressable>
+      <View style={styles.anchorCenter}>
+        <Text style={styles.anchorDate}>{formatDay(date, { weekday: "long", year: true })}</Text>
+      </View>
+      <Pressable
+        onPress={() => onChangeISO(formatISODate(addLocalDays(date, 1)))}
+        style={styles.anchorBtn}
+      >
+        <Text style={styles.anchorBtnText}>›</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+export function SettingsScreen() {
+  const { store, updateSettings, replaceStore } = useStore();
+  const [draft, setDraft] = useState(store.settings);
+  const [saved, setSaved] = useState(false);
+  const [backupNote, setBackupNote] = useState("");
+
+  useEffect(() => {
+    setDraft(store.settings);
+  }, [store.settings]);
+
+  function setField(key, value) {
+    setSaved(false);
+    setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  async function save() {
+    await updateSettings({
+      headerRate: String(draft.headerRate || "").trim(),
+      headerRateFrom: draft.headerRateFrom,
+      previousHeaderRate: String(draft.previousHeaderRate || "").trim(),
+      saturdayLoading: String(draft.saturdayLoading || "").trim(),
+      sundayLoading: String(draft.sundayLoading || "").trim(),
+      nightLoading: String(draft.nightLoading || "").trim(),
+      superPercent: String(draft.superPercent || "").trim(),
+      fortnightAnchor: draft.fortnightAnchor,
+      currency: draft.currency || "AUD",
+    });
+    setSaved(true);
+  }
+
+  const header = parseRate(draft.headerRate);
+  const previous = parseRate(draft.previousHeaderRate);
+  const sat = parseLoading(draft.saturdayLoading, 125);
+  const sun = parseLoading(draft.sundayLoading, 150);
+  const night = parseLoading(draft.nightLoading, 110);
+
+  return (
+    <Screen
+      title="Settings"
+      subtitle="Your hourly pay. Saturday and Sunday are extra % of this number. After 10pm on weekdays is a bit extra."
+    >
+      <Text style={styles.section}>Your hourly pay</Text>
+      <Text style={styles.note}>
+        Weekday pay before 10:00 PM. Older shifts use the earlier number until the date below.
+      </Text>
+      <Field
+        label="Hourly pay now"
+        prefix="$"
+        value={draft.headerRate}
+        onChangeText={(value) => setField("headerRate", value)}
+        placeholder="34.00"
+        hint="Latest slip: $34.00."
+      />
+      <Text style={styles.dateLabel}>This pay started on</Text>
+      <DateStepper
+        valueISO={draft.headerRateFrom}
+        onChangeISO={(value) => setField("headerRateFrom", value)}
+      />
+      <Field
+        label="Pay before that date"
+        prefix="$"
+        value={draft.previousHeaderRate}
+        onChangeText={(value) => setField("previousHeaderRate", value)}
+        placeholder="31.18"
+        hint="Used on shifts before the date above. Older slips: $31.18."
+      />
+
+      <Rule />
+
+      <Text style={styles.section}>Extra pay</Text>
+      <Text style={styles.note}>
+        Saturday and Sunday stay extra all evening. After 10pm only applies Monday to Friday.
+      </Text>
+      <Field
+        label="Saturday"
+        value={draft.saturdayLoading}
+        onChangeText={(value) => setField("saturdayLoading", value)}
+        placeholder="125"
+        hint={
+          header
+            ? `125% of hourly pay → ${formatMoney(lineAmount(1, header, sat), draft.currency)} an hour`
+            : "Extra % of your hourly pay"
+        }
+      />
+      <Field
+        label="Sunday"
+        value={draft.sundayLoading}
+        onChangeText={(value) => setField("sundayLoading", value)}
+        placeholder="150"
+        hint={
+          header
+            ? `150% of hourly pay → ${formatMoney(lineAmount(1, header, sun), draft.currency)} an hour`
+            : "Extra % of your hourly pay"
+        }
+      />
+      <Field
+        label="Weekday after 10:00 PM"
+        value={draft.nightLoading}
+        onChangeText={(value) => setField("nightLoading", value)}
+        placeholder="110"
+        hint={
+          header
+            ? `110% of hourly pay → ${formatMoney(lineAmount(1, header, night), draft.currency)} an hour · weekdays only`
+            : "Weekdays only"
+        }
+      />
+      {previous && draft.headerRateFrom ? (
+        <Text style={styles.note}>
+          Before {formatDay(parseISODate(draft.headerRateFrom), { weekday: "short" })} those extras use $
+          {Number(previous).toFixed(2)} instead.
+        </Text>
+      ) : null}
+
+      <Rule />
+
+      <Text style={styles.section}>Super your boss pays (not taken from you)</Text>
+      <Text style={styles.note}>
+        This is extra money your boss pays into super. It is not taken from what you take home. What you take home
+        is before-tax pay minus tax.
+      </Text>
+      <Field
+        label="Percent your boss pays"
+        value={draft.superPercent}
+        onChangeText={(value) => setField("superPercent", value)}
+        placeholder="12"
+        hint="12% of the 2-week total before tax"
+      />
+
+      <Rule />
+
+      <Text style={styles.section}>These 2 weeks</Text>
+      <Text style={styles.note}>
+        Pay is counted in 14-day blocks from this start. Money often arrives weeks later — mark it paid when it
+        actually hits your account.
+      </Text>
+      <DateStepper
+        valueISO={draft.fortnightAnchor}
+        onChangeISO={(value) => setField("fortnightAnchor", value)}
+      />
+
+      <Button label={saved ? "Saved" : "Save"} onPress={save} />
+
+      {canUseFileBackup() ? (
+        <>
+          <Rule />
+          <Text style={styles.section}>Backup</Text>
+          <Text style={styles.note}>
+            Hours live in this browser. If Safari clears them, they’re gone — save a copy now and then.
+          </Text>
+          <Button
+            label="Save a backup"
+            variant="secondary"
+            onPress={() => {
+              downloadBackup(store);
+              setBackupNote("Saved to your Downloads folder.");
+            }}
+          />
+          <Button
+            label="Load a backup"
+            variant="ghost"
+            onPress={() => {
+              confirmAction({
+                title: "Replace what’s on this phone?",
+                message: "This overwrites hours and pay on this device.",
+                confirmLabel: "Load",
+                destructive: true,
+                onConfirm: async () => {
+                  try {
+                    const raw = await pickBackupFile();
+                    await replaceStore(raw);
+                    setBackupNote("Backup loaded.");
+                  } catch (err) {
+                    if (err.message !== "No file picked.") setBackupNote(err.message);
+                  }
+                },
+              });
+            }}
+          />
+          {backupNote ? <Text style={styles.local}>{backupNote}</Text> : null}
+        </>
+      ) : null}
+
+      <Text style={styles.local}>Everything stays on this phone. Nothing is uploaded.</Text>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  section: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.text,
+  },
+  note: {
+    fontFamily: fonts.body,
+    color: colors.muted,
+    lineHeight: 20,
+    marginTop: -8,
+  },
+  dateLabel: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  anchorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  anchorBtn: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  anchorBtnText: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.primary,
+  },
+  anchorCenter: {
+    flex: 1,
+    alignItems: "center",
+  },
+  anchorDate: {
+    fontFamily: fonts.bodyBold,
+    color: colors.text,
+    fontSize: 16,
+  },
+  local: {
+    fontFamily: fonts.body,
+    textAlign: "center",
+    color: colors.muted,
+    fontSize: 13,
+    marginBottom: 12,
+  },
+});

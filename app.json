@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Logit",
+    "slug": "logit",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "platforms": ["ios", "android", "web"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#f0e2c4"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./public/icon-192.png",
+      "name": "Logit",
+      "shortName": "Logit",
+      "description": "Clock your hours. See what you take home.",
+      "themeColor": "#f0e2c4",
+      "backgroundColor": "#f0e2c4",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "en-AU"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}
