@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#f0e2c4"
+        "backgroundColor": "#cfc8bb"
       }
     },
     "web": {
@@ -24,8 +24,8 @@
       "name": "Logit",
       "shortName": "Logit",
       "description": "Clock your hours. See what you take home.",
-      "themeColor": "#f0e2c4",
-      "backgroundColor": "#f0e2c4",
+      "themeColor": "#cfc8bb",
+      "backgroundColor": "#cfc8bb",
       "display": "standalone",
       "orientation": "portrait",
       "lang": "en-AU"

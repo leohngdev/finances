@@ -85,7 +85,7 @@ export function ShiftEditor({ visible, title, initial, settings, onClose, onSave
           </Pressable>
           {openEnded ? null : <DateTimeField label="Clock out" value={clockOut} onChange={setClockOut} />}
           {openEnded ? null : (
-            <Card ticket padded={false} style={styles.ticket}>
+            <Card ticket tilt={false} padded={false} style={styles.ticket}>
               <Text style={styles.previewValue}>
                 {preview.pay && hasPayRates(settings)
                   ? formatMoney(preview.pay.net, settings.currency)

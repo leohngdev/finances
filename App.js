@@ -1,27 +1,73 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { ClockScreen } from "./src/features/clock/ClockScreen";
 import { HistoryScreen } from "./src/features/history/HistoryScreen";
 import { PayScreen } from "./src/features/pay/PayScreen";
 import { SettingsScreen } from "./src/features/settings/SettingsScreen";
+import { findOpenShift } from "./src/services/domain";
 import { StoreProvider, useStore } from "./src/services/StoreContext";
 import { useAppFonts } from "./src/shared/fonts";
+import { Spinning, useReducedMotion } from "./src/shared/motion";
 import { colors, fonts } from "./src/shared/theme";
+import { GriptapeFill } from "./src/shared/ui/Griptape";
+import { Icon } from "./src/shared/ui/Icon";
 
 const TABS = [
-  { id: "clock", label: "Clock" },
-  { id: "history", label: "Hours" },
-  { id: "pay", label: "Pay" },
-  { id: "settings", label: "Settings" },
+  { id: "clock", label: "Clock", icon: "clock" },
+  { id: "history", label: "Hours", icon: "hours" },
+  { id: "pay", label: "Pay", icon: "pay" },
+  { id: "settings", label: "Settings", icon: "settings" },
 ];
+
+function TabButton({ item, active, onPress, spinning }) {
+  const reduced = useReducedMotion();
+  const scale = useRef(new Animated.Value(active ? 1.08 : 1)).current;
+
+  useEffect(() => {
+    if (reduced) {
+      scale.setValue(active ? 1.08 : 1);
+      return;
+    }
+    Animated.timing(scale, {
+      toValue: active ? 1.12 : 1,
+      duration: 160,
+      useNativeDriver: true,
+    }).start();
+  }, [active, reduced, scale]);
+
+  const ink = active ? colors.bone : colors.maple;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={styles.tab}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={spinning ? `${item.label}, still on` : item.label}
+    >
+      <Animated.View
+        style={[
+          styles.tabIcon,
+          active && styles.tabIconOn,
+          { transform: [{ scale }] },
+        ]}
+      >
+        <Spinning on={spinning}>
+          <Icon name={item.icon} color={ink} size={22} />
+        </Spinning>
+      </Animated.View>
+      <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{item.label}</Text>
+    </Pressable>
+  );
+}
 
 function AppShell() {
   const [tab, setTab] = useState("clock");
-  const { ready, loadError, saveError, reload } = useStore();
+  const { ready, store, loadError, saveError, reload } = useStore();
+  const clockedIn = Boolean(store && findOpenShift(store.shifts));
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.safe}>
       <StatusBar style="dark" />
       {saveError ? (
         <View style={styles.banner}>
@@ -32,7 +78,6 @@ function AppShell() {
         {!ready ? (
           <View style={styles.center}>
             <Text style={styles.brand}>Logit</Text>
-            <Text style={styles.muted}>Loading your hours…</Text>
           </View>
         ) : loadError ? (
           <View style={styles.center}>
@@ -58,24 +103,18 @@ function AppShell() {
         )}
       </View>
       <View style={styles.tabs}>
-        {TABS.map((item) => {
-          const active = tab === item.id;
-          return (
-            <Pressable
-              key={item.id}
-              onPress={() => setTab(item.id)}
-              style={styles.tab}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={item.label}
-            >
-              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{item.label}</Text>
-              {active ? <View style={styles.tabMark} /> : <View style={styles.tabMarkEmpty} />}
-            </Pressable>
-          );
-        })}
+        <GriptapeFill />
+        {TABS.map((item) => (
+          <TabButton
+            key={item.id}
+            item={item}
+            active={tab === item.id}
+            spinning={item.id === "clock" && clockedIn}
+            onPress={() => setTab(item.id)}
+          />
+        ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -116,10 +155,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 42,
     color: colors.primary,
+    letterSpacing: 1,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: 28,
+    fontSize: 22,
     color: colors.text,
     textAlign: "center",
   },
@@ -150,38 +190,43 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: "row",
-    paddingHorizontal: 8,
-    paddingBottom: Platform.OS === "web" ? "max(10px, env(safe-area-inset-bottom))" : 10,
+    paddingHorizontal: 6,
     paddingTop: 8,
-    backgroundColor: colors.bg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    paddingBottom: Platform.OS === "web" ? "max(6px, calc(env(safe-area-inset-bottom) * 0.35))" : 6,
+    backgroundColor: colors.griptape,
+    overflow: "hidden",
     flexShrink: 0,
   },
   tab: {
     flex: 1,
+    zIndex: 1,
     minHeight: 52,
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+    gap: 3,
+  },
+  tabIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 99,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2c2823",
+    borderWidth: 1.5,
+    borderColor: "#5a5348",
+  },
+  tabIconOn: {
+    backgroundColor: colors.primary,
+    borderColor: colors.maple,
   },
   tabLabel: {
-    fontFamily: fonts.body,
-    fontSize: 16,
-    color: colors.muted,
+    fontFamily: fonts.bodySemi,
+    fontSize: 11,
+    color: "#d2c8b8",
+    letterSpacing: 0.4,
   },
   tabLabelActive: {
     fontFamily: fonts.bodyBold,
-    color: colors.text,
-  },
-  tabMark: {
-    width: 18,
-    height: 3,
-    backgroundColor: colors.primary,
-    borderRadius: 2,
-  },
-  tabMarkEmpty: {
-    width: 18,
-    height: 3,
+    color: colors.bone,
   },
 });

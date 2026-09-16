@@ -32,18 +32,18 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingBottom: 40,
+    paddingBottom: 28,
   },
   inner: {
     paddingHorizontal: space[5],
-    paddingTop: space[2],
+    paddingTop: space[3],
     gap: 16,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: 40,
-    color: colors.text,
-    lineHeight: 44,
+    fontSize: 34,
+    color: colors.ink,
+    letterSpacing: 1.2,
   },
   subtitle: {
     fontFamily: fonts.body,

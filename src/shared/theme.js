@@ -1,23 +1,28 @@
 export const colors = {
-  bg: "#f0e2c4",
-  paper: "#faf4e6",
-  text: "#1c1712",
-  muted: "#6e5f4d",
-  border: "#d4c19a",
-  primary: "#c45c32",
-  primaryText: "#faf4e6",
-  primarySoft: "#ead7c0",
-  accent: "#c45c32",
-  accentSoft: "#ead7c0",
-  positive: "#2f5d45",
-  positiveSoft: "#dce6d8",
-  danger: "#9e3f32",
-  dangerSoft: "#ead7c0",
+  bg: "#cfc8bb",
+  paper: "#efe8dc",
+  ink: "#161412",
+  text: "#161412",
+  muted: "#5c564c",
+  border: "#a8a093",
+  primary: "#7a2e2a",
+  primaryText: "#efe8dc",
+  primarySoft: "#d9c4b4",
+  accent: "#7a2e2a",
+  accentSoft: "#d9c4b4",
+  maple: "#c9955a",
+  griptape: "#161412",
+  bone: "#efe8dc",
+  teal: "#2f5c58",
+  positive: "#2f5c58",
+  positiveSoft: "#c5d4d1",
+  danger: "#7a2e2a",
+  dangerSoft: "#d9c4b4",
   warning: "#9a6b2f",
 };
 
 export const fonts = {
-  display: "Calistoga_400Regular",
+  display: "Bungee_400Regular",
   body: "Cabin_400Regular",
   bodyMedium: "Cabin_500Medium",
   bodySemi: "Cabin_600SemiBold",
@@ -27,10 +32,10 @@ export const fonts = {
 };
 
 export const radius = {
-  sm: 6,
-  md: 10,
-  lg: 12,
-  pill: 8,
+  sm: 4,
+  md: 8,
+  lg: 14,
+  pill: 999,
 };
 
 export const space = {

@@ -22,7 +22,8 @@ import {
 } from "../../shared/format";
 import { colors, fonts } from "../../shared/theme";
 import { Button } from "../../shared/ui/Button";
-import { Card } from "../../shared/ui/Card";
+import { Sticker } from "../../shared/ui/Sticker";
+import { PunchClock } from "../../shared/ui/PunchClock";
 import { Rule } from "../../shared/ui/Rule";
 import { Screen } from "../../shared/ui/Screen";
 import { ShiftEditor } from "../history/ShiftEditor";
@@ -39,12 +40,7 @@ function LiveDot() {
     anim.start();
     return () => anim.stop();
   }, [pulse]);
-  return (
-    <Animated.View
-      accessibilityLabel="On"
-      style={[styles.dot, { opacity: pulse }]}
-    />
-  );
+  return <Animated.View accessibilityLabel="On" style={[styles.dot, { opacity: pulse }]} />;
 }
 
 export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
@@ -89,54 +85,52 @@ export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
   return (
     <Screen title="Clock">
       {!hasPayRates(settings) ? (
-        <View style={styles.block}>
-          <Button label="Add hourly pay" variant="secondary" onPress={onOpenSettings} />
-        </View>
+        <Button label="Add hourly pay" variant="secondary" onPress={onOpenSettings} />
       ) : null}
 
       <View style={styles.hero}>
+        <PunchClock
+          date={now}
+          live={Boolean(open)}
+          label={open ? "Clock out" : "Clock in"}
+          onPress={() => (open ? clockOut(new Date()) : clockIn(new Date()))}
+        />
         {open ? (
-          <>
-            <View style={styles.liveRow}>
-              <LiveDot />
-              <Text style={styles.timer}>{formatDurationMs(now - new Date(open.clockIn))}</Text>
-            </View>
-            <Text style={styles.heroMeta}>{formatTime(open.clockIn)}</Text>
-            {livePay && hasPayRates(settings) ? (
-              <Text style={styles.heroMeta}>
-                {formatHours(live)} · {formatMoney(livePay.gross, settings.currency)}
-              </Text>
-            ) : (
-              <Text style={styles.heroMeta}>{formatHours(live)}</Text>
-            )}
-            <Button label="Clock out" variant="accent" onPress={() => clockOut(new Date())} />
-          </>
-        ) : (
-          <Button label="Clock in" onPress={() => clockIn(new Date())} />
-        )}
-        <Button label="Add a past shift" variant="secondary" onPress={openLogPast} />
+          <View style={styles.liveMeta}>
+            <Text style={styles.timer}>{formatDurationMs(now - new Date(open.clockIn))}</Text>
+            <Text style={styles.heroMeta}>
+              {formatTime(open.clockIn)}
+              {livePay && hasPayRates(settings)
+                ? ` · ${formatHours(live)} · ${formatMoney(livePay.gross, settings.currency)}`
+                : ` · ${formatHours(live)}`}
+            </Text>
+          </View>
+        ) : null}
+        <Button label="Add a past shift" variant="secondary" icon="plus" onPress={openLogPast} />
       </View>
 
       <Rule />
 
-      <Pressable onPress={onOpenPay} style={styles.payTap}>
-        <Text style={styles.cardTitle}>These 2 weeks</Text>
-        <Text style={styles.muted}>{formatRange(range.start, range.end)}</Text>
-        {hasPayRates(settings) ? (
-          <Card ticket padded={false} style={styles.ticket}>
-            <Text style={styles.big}>{formatMoney(fortnightPay.net, settings.currency)}</Text>
-            <Text style={styles.muted}>{formatHours(fortnightPay.hours)}</Text>
-          </Card>
-        ) : (
-          <Text style={styles.big}>{formatHours(fortnightPay.hours)}</Text>
-        )}
+      <Pressable onPress={onOpenPay} style={styles.payTap} accessibilityRole="button" accessibilityLabel="Pay">
+        <Sticker>
+          <Text style={styles.cardTitle}>These 2 weeks</Text>
+          <Text style={styles.muted}>{formatRange(range.start, range.end)}</Text>
+          {hasPayRates(settings) ? (
+            <>
+              <Text style={styles.big}>{formatMoney(fortnightPay.net, settings.currency)}</Text>
+              <Text style={styles.muted}>{formatHours(fortnightPay.hours)}</Text>
+            </>
+          ) : (
+            <Text style={styles.big}>{formatHours(fortnightPay.hours)}</Text>
+          )}
+        </Sticker>
       </Pressable>
 
       {recent.length > 0 ? (
         <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>Recent</Text>
           <Pressable onPress={onOpenHistory} hitSlop={8}>
-            <Text style={styles.link}>All shifts</Text>
+            <Text style={styles.link}>All</Text>
           </Pressable>
         </View>
       ) : null}
@@ -182,39 +176,30 @@ export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
 }
 
 const styles = StyleSheet.create({
-  block: {
-    gap: 8,
-  },
   hero: {
-    gap: 10,
-  },
-  liveRow: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
   },
-  dot: {
-    width: 9,
-    height: 9,
-    borderRadius: 99,
-    backgroundColor: colors.primary,
+  liveMeta: {
+    alignItems: "center",
+    gap: 2,
   },
   timer: {
-    fontFamily: fonts.display,
-    fontSize: 48,
-    color: colors.text,
+    fontFamily: fonts.digits,
+    fontSize: 36,
+    color: colors.ink,
     letterSpacing: -1,
   },
   heroMeta: {
     fontFamily: fonts.body,
     color: colors.muted,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 15,
   },
   cardTitle: {
     fontFamily: fonts.display,
-    fontSize: 22,
+    fontSize: 18,
     color: colors.text,
+    letterSpacing: 0.6,
   },
   muted: {
     fontFamily: fonts.body,
@@ -224,17 +209,11 @@ const styles = StyleSheet.create({
   payTap: {
     gap: 4,
   },
-  ticket: {
-    marginTop: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 22,
-  },
   big: {
     fontFamily: fonts.money,
     fontSize: 36,
     color: colors.text,
-    marginTop: 4,
+    marginTop: 8,
     letterSpacing: -0.5,
   },
   sectionHead: {
@@ -245,8 +224,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fonts.display,
-    fontSize: 22,
+    fontSize: 18,
     color: colors.text,
+    letterSpacing: 0.6,
   },
   link: {
     fontFamily: fonts.bodyBold,
@@ -273,5 +253,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.money,
     fontSize: 18,
     color: colors.text,
+  },
+  dot: {
+    width: 9,
+    height: 9,
+    borderRadius: 99,
+    backgroundColor: colors.primary,
   },
 });

@@ -8,6 +8,7 @@ import { colors, fonts } from "../../shared/theme";
 import { Button } from "../../shared/ui/Button";
 import { Card } from "../../shared/ui/Card";
 import { Field } from "../../shared/ui/Field";
+import { PrizeSticker } from "../../shared/ui/PrizeSticker";
 import { Rule } from "../../shared/ui/Rule";
 import { Screen } from "../../shared/ui/Screen";
 
@@ -37,15 +38,11 @@ export function PayScreen() {
 
   return (
     <Screen title="Pay">
-      <View>
-        <Text style={styles.tiny}>Owed</Text>
-        <Text style={styles.owedLine}>{formatMoney(summary.owed, currency)}</Text>
-        <Text style={styles.paidLine}>Paid {formatMoney(summary.paid, currency)}</Text>
-      </View>
-
-      <Text style={styles.yearNote}>
-        Since 1 July · {formatMoney(ytd.net, currency)}
-      </Text>
+      <PrizeSticker
+        owed={formatMoney(summary.owed, currency)}
+        paid={formatMoney(summary.paid, currency)}
+        ytd={formatMoney(ytd.net, currency)}
+      />
 
       {current ? (
         <FortnightBlock
@@ -77,9 +74,8 @@ export function PayScreen() {
 
 function StatusMark({ owed }) {
   return (
-    <View style={styles.statusRow}>
-      <View style={[styles.statusDot, owed ? styles.dotOwed : styles.dotPaid]} />
-      <Text style={[styles.status, owed ? styles.statusOwed : styles.statusPaid]}>
+    <View style={[styles.stamp, owed ? styles.stampOwed : styles.stampPaid]}>
+      <Text style={[styles.stampText, owed ? styles.stampTextOwed : styles.stampTextPaid]}>
         {owed ? "Owed" : "Paid"}
       </Text>
     </View>
@@ -97,7 +93,7 @@ function FortnightBlock({ fortnight, title, currency, compact, onPaid, onUnpaid,
       <StatusMark owed={owed} />
       <Text style={styles.cardTitle}>{title}</Text>
       <Text style={styles.muted}>{formatRange(fortnight.start, fortnight.end)}</Text>
-      <Card ticket padded={false} style={styles.ticket}>
+      <Card ticket tilt={false} padded={false} style={styles.ticket}>
         <PayLines pay={fortnight.pay} currency={currency} hours={fortnight.hours} compact={compact} />
       </Card>
       {fortnight.paid ? (
@@ -106,6 +102,7 @@ function FortnightBlock({ fortnight, title, currency, compact, onPaid, onUnpaid,
         <Button
           label={`Mark as paid ${formatMoney(fortnight.pay.net, currency)}`}
           variant="primary"
+          icon="check"
           onPress={onPaid}
           disabled={fortnight.hours === 0}
         />
@@ -163,63 +160,41 @@ function Line({ label, value }) {
 }
 
 const styles = StyleSheet.create({
-  tiny: {
-    fontFamily: fonts.body,
-    color: colors.muted,
-    fontSize: 13,
-  },
-  paidLine: {
-    fontFamily: fonts.body,
-    fontSize: 16,
-    color: colors.positive,
-    marginBottom: 4,
-  },
-  owedLine: {
-    fontFamily: fonts.money,
-    fontSize: 40,
-    color: colors.primary,
-    marginBottom: 6,
-    letterSpacing: -0.5,
-  },
-  yearNote: {
-    fontFamily: fonts.body,
-    color: colors.muted,
-    fontSize: 14,
-  },
   block: {
     gap: 6,
     marginTop: 8,
   },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  stamp: {
+    alignSelf: "flex-start",
+    transform: [{ rotate: "-8deg" }],
+    borderWidth: 2.5,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginBottom: 2,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 99,
+  stampOwed: {
+    borderColor: colors.primary,
   },
-  dotOwed: {
-    backgroundColor: colors.primary,
+  stampPaid: {
+    borderColor: colors.teal,
   },
-  dotPaid: {
-    backgroundColor: colors.positive,
-  },
-  status: {
-    fontFamily: fonts.bodyBold,
+  stampText: {
+    fontFamily: fonts.display,
     fontSize: 14,
+    letterSpacing: 1,
   },
-  statusOwed: {
+  stampTextOwed: {
     color: colors.primary,
   },
-  statusPaid: {
+  stampTextPaid: {
     color: colors.positive,
   },
   cardTitle: {
     fontFamily: fonts.display,
-    fontSize: 22,
+    fontSize: 18,
     color: colors.text,
+    letterSpacing: 0.6,
   },
   muted: {
     fontFamily: fonts.body,

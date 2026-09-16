@@ -47,7 +47,7 @@ export function formatRange(start, end) {
     month: "short",
     year: "numeric",
   });
-  return `${startText} – ${endText}`;
+  return `${startText} to ${endText}`;
 }
 
 export function formatDurationMs(ms) {
@@ -60,6 +60,6 @@ export function formatDurationMs(ms) {
 
 export function formatClockRange(clockIn, clockOut) {
   const start = formatTime(clockIn);
-  if (!clockOut) return `${start} – now`;
-  return `${start} – ${formatTime(clockOut)}`;
+  if (!clockOut) return `${start} to now`;
+  return `${start} to ${formatTime(clockOut)}`;
 }

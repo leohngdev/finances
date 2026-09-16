@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { addLocalDays, formatISODate, lineAmount, parseISODate, parseLoading, parseRate } from "../../services/domain";
 import { useStore } from "../../services/StoreContext";
 import { canUseFileBackup, downloadBackup, pickBackupFile } from "../../shared/backup";
@@ -10,26 +10,25 @@ import { Button } from "../../shared/ui/Button";
 import { Field } from "../../shared/ui/Field";
 import { Rule } from "../../shared/ui/Rule";
 import { Screen } from "../../shared/ui/Screen";
+import { BoltMark, NutButton, Truck } from "../../shared/ui/Truck";
 
 function DateStepper({ valueISO, onChangeISO }) {
   const date = parseISODate(valueISO || "2026-06-29");
   return (
     <View style={styles.anchorRow}>
-      <Pressable
+      <NutButton
+        direction="prev"
+        accessibilityLabel="Previous day"
         onPress={() => onChangeISO(formatISODate(addLocalDays(date, -1)))}
-        style={styles.anchorBtn}
-      >
-        <Text style={styles.anchorBtnText}>‹</Text>
-      </Pressable>
+      />
       <View style={styles.anchorCenter}>
         <Text style={styles.anchorDate}>{formatDay(date, { weekday: "long", year: true })}</Text>
       </View>
-      <Pressable
+      <NutButton
+        direction="next"
+        accessibilityLabel="Next day"
         onPress={() => onChangeISO(formatISODate(addLocalDays(date, 1)))}
-        style={styles.anchorBtn}
-      >
-        <Text style={styles.anchorBtnText}>›</Text>
-      </Pressable>
+      />
     </View>
   );
 }
@@ -75,7 +74,11 @@ export function SettingsScreen() {
       title="Settings"
       subtitle="Your hourly pay. Saturday and Sunday are extra % of this number. After 10pm on weekdays is a bit extra."
     >
-      <Text style={styles.section}>Your hourly pay</Text>
+      <Truck />
+      <View style={styles.sectionRow}>
+        <BoltMark />
+        <Text style={styles.section}>Your hourly pay</Text>
+      </View>
       <Text style={styles.note}>
         Weekday pay before 10:00 PM. Older shifts use the earlier number until the date below.
       </Text>
@@ -103,7 +106,10 @@ export function SettingsScreen() {
 
       <Rule />
 
-      <Text style={styles.section}>Extra pay</Text>
+      <View style={styles.sectionRow}>
+        <BoltMark />
+        <Text style={styles.section}>Extra pay</Text>
+      </View>
       <Text style={styles.note}>
         Saturday and Sunday stay extra all evening. After 10pm only applies Monday to Friday.
       </Text>
@@ -149,7 +155,10 @@ export function SettingsScreen() {
 
       <Rule />
 
-      <Text style={styles.section}>Super your boss pays (not taken from you)</Text>
+      <View style={styles.sectionRow}>
+        <BoltMark />
+        <Text style={styles.section}>Super your boss pays (not taken from you)</Text>
+      </View>
       <Text style={styles.note}>
         This is extra money your boss pays into super. It is not taken from what you take home. What you take home
         is before-tax pay minus tax.
@@ -164,9 +173,12 @@ export function SettingsScreen() {
 
       <Rule />
 
-      <Text style={styles.section}>These 2 weeks</Text>
+      <View style={styles.sectionRow}>
+        <BoltMark />
+        <Text style={styles.section}>These 2 weeks</Text>
+      </View>
       <Text style={styles.note}>
-        Pay is counted in 14-day blocks from this start. Money often arrives weeks later — mark it paid when it
+        Pay is counted in 14-day blocks from this start. Money often arrives weeks later. Mark it paid when it
         actually hits your account.
       </Text>
       <DateStepper
@@ -179,9 +191,12 @@ export function SettingsScreen() {
       {canUseFileBackup() ? (
         <>
           <Rule />
-          <Text style={styles.section}>Backup</Text>
+          <View style={styles.sectionRow}>
+            <BoltMark />
+            <Text style={styles.section}>Backup</Text>
+          </View>
           <Text style={styles.note}>
-            Hours live in this browser. If Safari clears them, they’re gone — save a copy now and then.
+            Hours live in this browser. If Safari clears them, they’re gone. Save a copy now and then.
           </Text>
           <Button
             label="Save a backup"
@@ -222,10 +237,17 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  sectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   section: {
     fontFamily: fonts.display,
-    fontSize: 22,
+    fontSize: 16,
     color: colors.text,
+    letterSpacing: 0.8,
+    flex: 1,
   },
   note: {
     fontFamily: fonts.body,
@@ -244,17 +266,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginBottom: 4,
-  },
-  anchorBtn: {
-    width: 48,
-    height: 48,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  anchorBtnText: {
-    fontFamily: fonts.display,
-    fontSize: 28,
-    color: colors.primary,
   },
   anchorCenter: {
     flex: 1,

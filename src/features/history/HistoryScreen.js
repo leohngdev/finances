@@ -10,7 +10,7 @@ import {
 import { useStore } from "../../services/StoreContext";
 import { formatClockRange, formatDay, formatHours, formatMoney } from "../../shared/format";
 import { colors, fonts } from "../../shared/theme";
-import { Button } from "../../shared/ui/Button";
+import { Deck, MiniDeck } from "../../shared/ui/Deck";
 import { Rule } from "../../shared/ui/Rule";
 import { Screen } from "../../shared/ui/Screen";
 import { ShiftEditor } from "./ShiftEditor";
@@ -39,10 +39,15 @@ export function HistoryScreen() {
 
   return (
     <Screen title="Hours">
-      <Button label="Add a past shift" variant="secondary" onPress={addShift} />
+      <View style={styles.hero}>
+        <Deck label="Add a past shift" onPress={addShift} />
+      </View>
       {groups.map((group) => (
         <View key={group.key} style={styles.group}>
-          <Text style={styles.day}>{formatDay(group.date, { weekday: "long" })}</Text>
+          <View style={styles.dayRow}>
+            <MiniDeck size={22} />
+            <Text style={styles.day}>{formatDay(group.date, { weekday: "long" })}</Text>
+          </View>
           {group.shifts.map((shift, index) => {
             const hours = shift.clockOut ? shiftHours(shift.clockIn, shift.clockOut) : 0;
             const pay = shift.clockOut
@@ -83,14 +88,23 @@ export function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
+  hero: {
+    alignItems: "center",
+  },
   group: {
     gap: 2,
   },
+  dayRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
   day: {
     fontFamily: fonts.display,
-    fontSize: 18,
+    fontSize: 16,
     color: colors.primary,
-    marginTop: 8,
+    letterSpacing: 0.8,
   },
   row: {
     paddingVertical: 12,

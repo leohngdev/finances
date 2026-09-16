@@ -1,5 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
+import { Icon } from "./Icon";
 
 export function Button({
   label,
@@ -7,6 +8,7 @@ export function Button({
   variant = "primary",
   disabled = false,
   loading = false,
+  icon,
   style,
 }) {
   const palette = variants[variant] || variants.primary;
@@ -29,15 +31,18 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={palette.text} />
       ) : (
-        <Text
-          style={[
-            styles.label,
-            display && styles.heroLabel,
-            { color: palette.text, fontFamily: display ? fonts.display : fonts.bodyBold },
-          ]}
-        >
-          {label}
-        </Text>
+        <View style={styles.row}>
+          {icon ? <Icon name={icon} color={palette.text} size={display ? 22 : 18} /> : null}
+          <Text
+            style={[
+              styles.label,
+              display && styles.heroLabel,
+              { color: palette.text, fontFamily: display ? fonts.display : fonts.bodyBold },
+            ]}
+          >
+            {label}
+          </Text>
+        </View>
       )}
     </Pressable>
   );
@@ -48,32 +53,38 @@ const variants = {
   secondary: { bg: "transparent", text: colors.primary },
   ghost: { bg: "transparent", text: colors.muted },
   danger: { bg: "transparent", text: colors.danger },
-  positive: { bg: colors.positive, text: colors.primaryText },
-  accent: { bg: colors.text, text: colors.paper },
+  positive: { bg: colors.teal, text: colors.bone },
+  accent: { bg: colors.griptape, text: colors.bone },
 };
 
 const styles = StyleSheet.create({
   base: {
     minHeight: 52,
-    borderRadius: 8,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 18,
   },
   hero: {
-    minHeight: 64,
+    minHeight: 58,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   label: {
     fontSize: 16,
   },
   heroLabel: {
-    fontSize: 24,
+    fontSize: 18,
+    letterSpacing: 0.8,
   },
   disabled: {
     opacity: 0.4,
   },
   pressed: {
-    opacity: 0.82,
-    transform: [{ scale: 0.985 }],
+    opacity: 0.88,
+    transform: [{ scale: 0.96 }],
   },
 });

@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   dateBtnText: {
     fontFamily: fonts.display,
-    fontSize: 28,
+    fontSize: 20,
     color: colors.primary,
     marginTop: -2,
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     fontFamily: fonts.display,
-    fontSize: 24,
+    fontSize: 20,
     color: colors.primary,
   },
   stepValue: {
