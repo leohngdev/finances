@@ -2,6 +2,7 @@
   "name": "logit",
   "private": true,
   "version": "0.1.0",
+  "description": "A skateboard-themed timesheet. Clock in, keep the hours, and see a fortnight after tax.",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
@@ -16,7 +17,6 @@
     "@expo-google-fonts/azeret-mono": "^0.4.1",
     "@expo-google-fonts/bungee": "^0.4.1",
     "@expo-google-fonts/cabin": "^0.4.2",
-    "@expo-google-fonts/calistoga": "^0.4.1",
     "@expo/metro-runtime": "~4.0.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "expo": "~52.0.0",

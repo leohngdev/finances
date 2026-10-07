@@ -1,42 +1,38 @@
 # Logit
 
-Personal timesheet. Use it as a website on your iPhone — no App Store.
+A timesheet that lives on your iPhone home screen. Clock in, keep the hours, and see what a fortnight comes to after tax.
 
-Needs **Node.js 20+**.
+Skateboard graphics, griptape along the tab bar, and a wheel that keeps turning while you are clocked in.
 
-## Run locally
+**[Open Logit](https://finances-two-red.vercel.app)**
+
+![Clock screen](preview/clock.png)
+
+## What it does
+
+- **Clock.** Tap in and out. The wheel spins while a shift is open, including the Clock tab, so a forgotten clock-out is easy to spot.
+- **Hours.** Add or edit a past shift. Pick the date, and set the time down to the second. Mark a day as a public holiday.
+- **Pay.** Fortnights, with gross, PAYG, super, and what you take home. Mark a fortnight paid when the money arrives.
+- **Settings.** Hourly pay, weekend and night loadings, and a backup file. Hours stay in the browser on that phone.
+
+## Run it
+
+Needs Node.js 20+.
 
 ```bash
 npm install
 npm run web
 ```
 
-## Put it on your phone
+```bash
+npm test
+```
 
-1. Host the site:
+## On a phone
 
 ```bash
 npm run export:web
 npx vercel --yes
 ```
 
-First time, Vercel asks you to log in (free). It prints a URL.
-
-2. Open that URL in **Safari** (not Chrome).
-3. Share → **Add to Home Screen**.
-4. Open the new icon.
-
-Hours stay on that phone. Save a backup from Settings now and then — Safari can forget website data if you don’t open it for a long time.
-
-## Tests
-
-```bash
-npm test
-```
-
-## Folders
-
-- `App.js` — shell
-- `src/features/` — screens
-- `src/shared/` — UI pieces
-- `public/` — website / home-screen icons
+Open the URL in Safari, then Share, Add to Home Screen. Save a backup from Settings now and then. Safari can forget website data if the app stays closed for a long time.
