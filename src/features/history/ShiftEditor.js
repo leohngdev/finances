@@ -16,6 +16,7 @@ export function ShiftEditor({ visible, title, initial, settings, onClose, onSave
   const [clockIn, setClockIn] = useState(new Date());
   const [clockOut, setClockOut] = useState(new Date());
   const [openEnded, setOpenEnded] = useState(false);
+  const [publicHoliday, setPublicHoliday] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export function ShiftEditor({ visible, title, initial, settings, onClose, onSave
     setClockIn(new Date(initial.clockIn));
     setClockOut(initial.clockOut ? new Date(initial.clockOut) : new Date(initial.clockIn));
     setOpenEnded(!initial.clockOut);
+    setPublicHoliday(Boolean(initial.publicHoliday));
     setError("");
   }, [visible, initial]);
 
@@ -31,9 +33,16 @@ export function ShiftEditor({ visible, title, initial, settings, onClose, onSave
       return { hours: 0, pay: null };
     }
     const hours = shiftHours(clockIn.toISOString(), clockOut.toISOString());
-    const pay = calculateShiftPay(clockIn.toISOString(), clockOut.toISOString(), settings);
+    const pay = calculateShiftPay(
+      clockIn.toISOString(),
+      clockOut.toISOString(),
+      settings,
+      null,
+      null,
+      publicHoliday
+    );
     return { hours, pay };
-  }, [clockIn, clockOut, openEnded, settings]);
+  }, [clockIn, clockOut, openEnded, publicHoliday, settings]);
 
   async function handleSave() {
     try {
@@ -42,6 +51,7 @@ export function ShiftEditor({ visible, title, initial, settings, onClose, onSave
         id: initial && initial.id,
         clockIn,
         clockOut: openEnded ? null : clockOut,
+        publicHoliday,
       });
       onClose();
     } catch (err) {
@@ -84,6 +94,15 @@ export function ShiftEditor({ visible, title, initial, settings, onClose, onSave
             <Text style={styles.toggleAction}>{openEnded ? "Add finish" : "Leave open"}</Text>
           </Pressable>
           {openEnded ? null : <DateTimeField label="Clock out" value={clockOut} onChange={setClockOut} />}
+          <Pressable
+            onPress={() => setPublicHoliday((value) => !value)}
+            style={styles.toggle}
+            accessibilityRole="button"
+            accessibilityState={{ selected: publicHoliday }}
+          >
+            <Text style={styles.toggleText}>Public holiday</Text>
+            <Text style={styles.toggleAction}>{publicHoliday ? "On" : "Off"}</Text>
+          </Pressable>
           {openEnded ? null : (
             <Card ticket tilt={false} padded={false} style={styles.ticket}>
               <Text style={styles.previewValue}>

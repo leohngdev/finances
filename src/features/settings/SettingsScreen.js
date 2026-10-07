@@ -55,6 +55,7 @@ export function SettingsScreen() {
       previousHeaderRate: String(draft.previousHeaderRate || "").trim(),
       saturdayLoading: String(draft.saturdayLoading || "").trim(),
       sundayLoading: String(draft.sundayLoading || "").trim(),
+      publicHolidayLoading: String(draft.publicHolidayLoading || "").trim(),
       nightLoading: String(draft.nightLoading || "").trim(),
       superPercent: String(draft.superPercent || "").trim(),
       fortnightAnchor: draft.fortnightAnchor,
@@ -67,6 +68,7 @@ export function SettingsScreen() {
   const previous = parseRate(draft.previousHeaderRate);
   const sat = parseLoading(draft.saturdayLoading, 125);
   const sun = parseLoading(draft.sundayLoading, 150);
+  const holiday = parseLoading(draft.publicHolidayLoading, 250);
   const night = parseLoading(draft.nightLoading, 110);
 
   return (
@@ -111,7 +113,7 @@ export function SettingsScreen() {
         <Text style={styles.section}>Extra pay</Text>
       </View>
       <Text style={styles.note}>
-        Saturday and Sunday stay extra all evening. After 10pm only applies Monday to Friday.
+        Saturday and Sunday stay extra all evening. After 10pm only applies Monday to Friday. A public holiday replaces those on a shift you mark.
       </Text>
       <Field
         label="Saturday"
@@ -133,6 +135,17 @@ export function SettingsScreen() {
           header
             ? `150% of hourly pay → ${formatMoney(lineAmount(1, header, sun), draft.currency)} an hour`
             : "Extra % of your hourly pay"
+        }
+      />
+      <Field
+        label="Public holiday"
+        value={draft.publicHolidayLoading}
+        onChangeText={(value) => setField("publicHolidayLoading", value)}
+        placeholder="250"
+        hint={
+          header
+            ? `250% of hourly pay → ${formatMoney(lineAmount(1, header, holiday), draft.currency)} an hour`
+            : "Replaces the usual rate on a shift you mark"
         }
       />
       <Field

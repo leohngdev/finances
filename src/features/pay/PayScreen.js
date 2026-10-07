@@ -128,13 +128,14 @@ function PayLines({ pay, currency, hours, compact = false }) {
     <View style={styles.lines}>
       <Text style={styles.takeHome}>{formatMoney(pay.net, currency)}</Text>
       <Text style={styles.hours}>{formatHours(hours)}</Text>
-      {!compact && (pay.saturdayHours || pay.sundayHours || pay.nightHours || pay.weekdayHours) ? (
+      {!compact && (pay.saturdayHours || pay.sundayHours || pay.holidayHours || pay.nightHours || pay.weekdayHours) ? (
         <Text style={styles.split}>
           {[
             pay.weekdayHours ? `${formatHours(pay.weekdayHours)} weekday` : null,
             pay.nightHours ? `${formatHours(pay.nightHours)} after 10pm` : null,
             pay.saturdayHours ? `${formatHours(pay.saturdayHours)} Saturday` : null,
             pay.sundayHours ? `${formatHours(pay.sundayHours)} Sunday` : null,
+            pay.holidayHours ? `${formatHours(pay.holidayHours)} public holiday` : null,
           ]
             .filter(Boolean)
             .join(" · ")}

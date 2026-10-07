@@ -51,7 +51,7 @@ export function HistoryScreen() {
           {group.shifts.map((shift, index) => {
             const hours = shift.clockOut ? shiftHours(shift.clockIn, shift.clockOut) : 0;
             const pay = shift.clockOut
-              ? calculateShiftPay(shift.clockIn, shift.clockOut, settings)
+              ? calculateShiftPay(shift.clockIn, shift.clockOut, settings, null, null, shift.publicHoliday)
               : null;
             return (
               <View key={shift.id}>
@@ -60,7 +60,12 @@ export function HistoryScreen() {
                   <View style={styles.copy}>
                     <Text style={styles.when}>{formatClockRange(shift.clockIn, shift.clockOut)}</Text>
                     {shift.clockOut ? (
-                      <Text style={styles.muted}>{formatHours(hours)}</Text>
+                      <Text style={styles.muted}>
+                        {formatHours(hours)}
+                        {shift.publicHoliday ? " · Public holiday" : ""}
+                      </Text>
+                    ) : shift.publicHoliday ? (
+                      <Text style={styles.muted}>Public holiday</Text>
                     ) : null}
                   </View>
                   {shift.clockOut && hasPayRates(settings) ? (

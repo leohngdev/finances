@@ -81,21 +81,25 @@ export function StoreProvider({ children }) {
       if (!existing && findOpenShift(store.shifts) && !clockOutISO) {
         throw new Error("You’re already clocked in. Clock out, or edit that shift.");
       }
+      const publicHoliday = Boolean(draft.publicHoliday);
       if (existing) {
         await persist({
           ...store,
-          shifts: store.shifts.map((shift) =>
-            shift.id === existing.id ? { ...shift, clockIn: clockInISO, clockOut: clockOutISO } : shift
-          ),
+          shifts: store.shifts.map((shift) => {
+            if (shift.id !== existing.id) return shift;
+            const next = { ...shift, clockIn: clockInISO, clockOut: clockOutISO };
+            if (publicHoliday) next.publicHoliday = true;
+            else delete next.publicHoliday;
+            return next;
+          }),
         });
         return;
       }
+      const shift = { id: createId("shift"), clockIn: clockInISO, clockOut: clockOutISO };
+      if (publicHoliday) shift.publicHoliday = true;
       await persist({
         ...store,
-        shifts: [
-          { id: createId("shift"), clockIn: clockInISO, clockOut: clockOutISO },
-          ...store.shifts,
-        ],
+        shifts: [shift, ...store.shifts],
       });
     },
     [persist, store]

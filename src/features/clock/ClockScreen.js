@@ -44,7 +44,7 @@ function LiveDot() {
 }
 
 export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
-  const { store, clockIn, clockOut, upsertShift } = useStore();
+  const { store, clockIn, clockOut, upsertShift, deleteShift } = useStore();
   const [now, setNow] = useState(() => new Date());
   const [editorOpen, setEditorOpen] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -60,7 +60,7 @@ export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
   const completed = shiftsInRange(store.shifts, range);
   const live = open ? liveHours(open, now) : 0;
   const livePay = open
-    ? calculateShiftPay(open.clockIn, now.toISOString(), settings)
+    ? calculateShiftPay(open.clockIn, now.toISOString(), settings, null, null, open.publicHoliday)
     : null;
   const fortnightPay = calculateShiftsPay(
     open ? [...completed, { clockIn: open.clockIn, clockOut: now.toISOString() }] : completed,
@@ -79,6 +79,11 @@ export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
   function openLogPast() {
     const times = defaultShiftTimes(store.shifts, now);
     setDraft({ clockIn: times.clockIn, clockOut: times.clockOut });
+    setEditorOpen(true);
+  }
+
+  function editShift(shift) {
+    setDraft(shift);
     setEditorOpen(true);
   }
 
@@ -137,7 +142,12 @@ export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
       {recent.map((shift, index) => (
         <View key={shift.id}>
           {index > 0 ? <Rule /> : null}
-          <View style={styles.shiftRow}>
+          <Pressable
+            onPress={() => editShift(shift)}
+            style={styles.shiftRow}
+            accessibilityRole="button"
+            accessibilityLabel="Edit shift"
+          >
             <View style={styles.shiftCopy}>
               <Text style={styles.shiftWhen}>{formatClockRange(shift.clockIn, shift.clockOut)}</Text>
               <Text style={styles.muted}>
@@ -147,29 +157,31 @@ export function ClockScreen({ onOpenSettings, onOpenHistory, onOpenPay }) {
                   month: "short",
                 })}
                 {shift.clockOut ? ` · ${formatHours(shiftHours(shift.clockIn, shift.clockOut))}` : ""}
+                {shift.publicHoliday ? " · Public holiday" : ""}
               </Text>
             </View>
             {shift.clockOut && hasPayRates(settings) ? (
               <Text style={styles.shiftPay}>
                 {formatMoney(
-                  calculateShiftPay(shift.clockIn, shift.clockOut, settings).net,
+                  calculateShiftPay(shift.clockIn, shift.clockOut, settings, null, null, shift.publicHoliday).net,
                   settings.currency
                 )}
               </Text>
             ) : !shift.clockOut ? (
               <LiveDot />
             ) : null}
-          </View>
+          </Pressable>
         </View>
       ))}
 
       <ShiftEditor
         visible={editorOpen}
-        title="Add a past shift"
+        title={draft && draft.id ? "Edit shift" : "Add a past shift"}
         initial={draft}
         settings={settings}
         onClose={() => setEditorOpen(false)}
         onSave={upsertShift}
+        onDelete={draft && draft.id ? deleteShift : undefined}
       />
     </Screen>
   );

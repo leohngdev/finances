@@ -179,6 +179,7 @@ function nextRateBoundary(value) {
 }
 
 function loadingFor(type, weekdayNight, settings) {
+  if (type === "holiday") return parseLoading(settings && settings.publicHolidayLoading, 250);
   if (type === "saturday") return parseLoading(settings && settings.saturdayLoading, 125);
   if (type === "sunday") return parseLoading(settings && settings.sundayLoading, 150);
   if (weekdayNight) return parseLoading(settings && settings.nightLoading, 110);
@@ -190,7 +191,7 @@ function lineAmount(hours, header, loading) {
   return roundHalfUp(hours * header * loading, 2);
 }
 
-function splitShiftSegments(clockInISO, clockOutISO, settings) {
+function splitShiftSegments(clockInISO, clockOutISO, settings, publicHoliday) {
   const start = new Date(clockInISO);
   const end = new Date(clockOutISO);
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
@@ -201,8 +202,8 @@ function splitShiftSegments(clockInISO, clockOutISO, settings) {
   while (cursor < end) {
     const boundary = nextRateBoundary(cursor);
     const segEnd = boundary < end ? boundary : end;
-    const type = dayType(cursor);
-    const weekdayNight = isWeekdayNight(cursor);
+    const type = publicHoliday ? "holiday" : dayType(cursor);
+    const weekdayNight = publicHoliday ? false : isWeekdayNight(cursor);
     const hours = (segEnd.getTime() - cursor.getTime()) / 36e5;
     const loading = loadingFor(type, weekdayNight, settings || {});
     const header = headerForDate(settings, cursor);
@@ -227,6 +228,7 @@ function emptyTally() {
     weekdayHours: 0,
     saturdayHours: 0,
     sundayHours: 0,
+    holidayHours: 0,
     nightHours: 0,
     segments: [],
   };
@@ -235,7 +237,8 @@ function emptyTally() {
 function addSegmentToTally(tally, segment) {
   tally.hours += segment.hours;
   tally.segments.push(segment);
-  if (segment.dayType === "saturday") tally.saturdayHours += segment.hours;
+  if (segment.dayType === "holiday") tally.holidayHours += segment.hours;
+  else if (segment.dayType === "saturday") tally.saturdayHours += segment.hours;
   else if (segment.dayType === "sunday") tally.sundayHours += segment.hours;
   else if (segment.isNight) tally.nightHours += segment.hours;
   else tally.weekdayHours += segment.hours;
@@ -293,8 +296,10 @@ function sumSegmentAmounts(segments) {
   let nightAmount = 0;
   let saturdayAmount = 0;
   let sundayAmount = 0;
+  let holidayAmount = 0;
   for (const segment of segments || []) {
-    if (segment.dayType === "saturday") saturdayAmount += segment.amount;
+    if (segment.dayType === "holiday") holidayAmount += segment.amount;
+    else if (segment.dayType === "saturday") saturdayAmount += segment.amount;
     else if (segment.dayType === "sunday") sundayAmount += segment.amount;
     else if (segment.isNight) nightAmount += segment.amount;
     else weekdayAmount += segment.amount;
@@ -304,6 +309,7 @@ function sumSegmentAmounts(segments) {
     nightAmount: roundMoney(nightAmount),
     saturdayAmount: roundMoney(saturdayAmount),
     sundayAmount: roundMoney(sundayAmount),
+    holidayAmount: roundMoney(holidayAmount),
   };
 }
 
@@ -313,7 +319,8 @@ function finalizePay(tally, settings, paygOverride, paymentDate) {
   const nightAmount = amounts.nightAmount;
   const saturdayAmount = amounts.saturdayAmount;
   const sundayAmount = amounts.sundayAmount;
-  const gross = roundMoney(weekdayAmount + nightAmount + saturdayAmount + sundayAmount);
+  const holidayAmount = amounts.holidayAmount;
+  const gross = roundMoney(weekdayAmount + nightAmount + saturdayAmount + sundayAmount + holidayAmount);
   const superPercent = parsePercent(settings && settings.superPercent) || 12;
   const superAmount = roundMoney(gross * (superPercent / 100));
   const paygScaleYear = scale2YearForPayment(paymentDate);
@@ -327,11 +334,13 @@ function finalizePay(tally, settings, paygOverride, paymentDate) {
     weekdayHours: roundHours(tally.weekdayHours),
     saturdayHours: roundHours(tally.saturdayHours),
     sundayHours: roundHours(tally.sundayHours),
+    holidayHours: roundHours(tally.holidayHours),
     nightHours: roundHours(tally.nightHours),
     weekdayAmount,
     nightAmount,
     saturdayAmount,
     sundayAmount,
+    holidayAmount,
     segments: tally.segments,
     gross,
     payg,
@@ -349,16 +358,16 @@ function tallyShifts(shifts, settings) {
   const tally = emptyTally();
   for (const shift of shifts || []) {
     if (!shift.clockIn || !shift.clockOut) continue;
-    for (const segment of splitShiftSegments(shift.clockIn, shift.clockOut, settings)) {
+    for (const segment of splitShiftSegments(shift.clockIn, shift.clockOut, settings, shift.publicHoliday)) {
       addSegmentToTally(tally, segment);
     }
   }
   return tally;
 }
 
-function calculateShiftPay(clockInISO, clockOutISO, settings, paygOverride, paymentDate) {
+function calculateShiftPay(clockInISO, clockOutISO, settings, paygOverride, paymentDate, publicHoliday) {
   const tally = emptyTally();
-  for (const segment of splitShiftSegments(clockInISO, clockOutISO, settings)) {
+  for (const segment of splitShiftSegments(clockInISO, clockOutISO, settings, publicHoliday)) {
     addSegmentToTally(tally, segment);
   }
   return finalizePay(tally, settings, paygOverride, paymentDate);
@@ -534,6 +543,7 @@ function createDefaultStore(now = new Date()) {
       previousHeaderRate: DEFAULT_PREVIOUS_HEADER_RATE,
       saturdayLoading: "125",
       sundayLoading: "150",
+      publicHolidayLoading: "250",
       nightLoading: "110",
       superPercent: "12",
       currency: "AUD",

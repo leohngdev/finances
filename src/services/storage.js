@@ -22,6 +22,7 @@ export function normalizeStore(raw) {
   if (!settings.previousHeaderRate) settings.previousHeaderRate = defaults.settings.previousHeaderRate;
   if (!settings.saturdayLoading) settings.saturdayLoading = defaults.settings.saturdayLoading;
   if (!settings.sundayLoading) settings.sundayLoading = defaults.settings.sundayLoading;
+  if (!settings.publicHolidayLoading) settings.publicHolidayLoading = defaults.settings.publicHolidayLoading;
   if (!settings.nightLoading) settings.nightLoading = defaults.settings.nightLoading;
   if (!settings.superPercent) settings.superPercent = defaults.settings.superPercent;
   const paygOverrides =

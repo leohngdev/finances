@@ -186,6 +186,25 @@ test("the raise applies from 29 June 2026, including the whole new fortnight", (
   assert.equal(firstNewDay.weekdayAmount, 272);
 });
 
+test("a public holiday uses 250% for the whole shift instead of the usual day rate", () => {
+  const start = new Date(2026, 8, 14, 9, 0, 0);
+  const end = new Date(2026, 8, 14, 17, 0, 0);
+  const usual = domain.calculateShiftPay(start.toISOString(), end.toISOString(), SETTINGS);
+  const holiday = domain.calculateShiftPay(start.toISOString(), end.toISOString(), SETTINGS, null, null, true);
+  assert.equal(usual.gross, 272);
+  assert.equal(usual.holidayHours, 0);
+  assert.equal(holiday.holidayHours, 8);
+  assert.equal(holiday.weekdayHours, 0);
+  assert.equal(holiday.nightHours, 0);
+  assert.equal(holiday.gross, 680);
+  assert.equal(holiday.superAmount, 81.6);
+  const fromShift = domain.calculateShiftsPay(
+    [{ clockIn: start.toISOString(), clockOut: end.toISOString(), publicHoliday: true }],
+    SETTINGS
+  );
+  assert.equal(fromShift.gross, 680);
+});
+
 test("defaultShiftTimes copies the last completed shift onto today", () => {
   const now = new Date(2026, 8, 14, 12, 0, 0);
   const lastIn = new Date(2026, 8, 10, 8, 30, 0);
